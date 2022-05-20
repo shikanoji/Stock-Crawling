@@ -12,16 +12,42 @@ final class StockHelper {
     func filterHammerCandle(stocks: [Stock]) -> [Stock]{
         var filterList: [Stock] = []
         for stock in stocks {
-            guard [stock.close, stock.lowest, stock.open, stock.highest].filter { $0 == 0 }.isEmpty,
-                stock.volume > 100000 else {
+            guard isStockActive(stock: stock) else {
                 continue
             }
-            if stock.close == stock.highest,
-               (stock.open - stock.lowest)/(stock.close - stock.open) >= 3,
-               stock.reference > stock.open {
+            if (stock.highest - stock.close) <= (stock.open - stock.lowest) / 2,
+               (stock.open - stock.lowest)/(stock.close - stock.open) >= 1.5,
+               stock.reference >= stock.open {
                 filterList.append(stock)
             }
         }
         return filterList
     }
+    
+    func filterRevertedHammerCandle(stocks: [Stock]) -> [Stock] {
+        var filterList: [Stock] = []
+        for stock in stocks {
+            guard isStockActive(stock: stock) else {
+                continue
+            }
+            if (stock.close - stock.lowest) <= (stock.highest - stock.open)/2,
+               (stock.highest - stock.open)/(stock.open - stock.close) >= 1.5,
+               stock.reference <= stock.close {
+                filterList.append(stock)
+            }
+        }
+        return filterList
+    }
+    
+    private func isStockActive(stock: Stock) -> Bool {
+        guard [stock.close, stock.lowest, stock.open, stock.highest].filter({ $0 == 0 }).isEmpty,
+              stock.volume > 500000 else {
+            return false
+        }
+        guard stock.open != stock.close else {
+            return false
+        }
+        return true
+    }
+    
 }
