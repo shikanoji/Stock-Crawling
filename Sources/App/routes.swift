@@ -1,11 +1,9 @@
 import Vapor
+import SwiftSoup
 
 func routes(_ app: Application) throws {
-    app.get { req in
-        return "It works!"
-    }
-
-    app.get("hello") { req -> String in
-        return "Hello, world!"
+    app.get { req -> [Stock] in
+        let stocks = await StockCrawler.share.getStocks()
+        return StockHelper.shared.filterHammerCandle(stocks: stocks)
     }
 }
